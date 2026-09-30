@@ -156,3 +156,47 @@ describe('Task API', () => {
         expect(response.body.in_progress).toBe(0);
     });
 });
+
+test('PATCH /tasks/:id/assign should assign a task', async () => {
+    const task = taskService.create({
+        title: 'Assign me',
+    });
+
+    const response = await request(app)
+        .patch(`/tasks/${task.id}/assign`)
+        .send({
+            assignee: 'Jayendra',
+        });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.id).toBe(task.id);
+    expect(response.body.assignee).toBe('Jayendra');
+});
+
+test('PATCH /tasks/:id/assign should return 404 for non-existent task', async () => {
+    const response = await request(app)
+        .patch('/tasks/non-existent-id/assign')
+        .send({
+            assignee: 'Jayendra',
+        });
+
+    expect(response.statusCode).toBe(404);
+    expect(response.body.error).toBe('Task not found');
+});
+
+test('PATCH /tasks/:id/assign should return 400 for empty assignee', async () => {
+    const task = taskService.create({
+        title: 'Assign me',
+    });
+
+    const response = await request(app)
+        .patch(`/tasks/${task.id}/assign`)
+        .send({
+            assignee: '',
+        });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.error).toBe(
+        'assignee is required and must be a non-empty string'
+    );
+});
